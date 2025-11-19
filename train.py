@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 import monai
 
-from OdeliaDataset import OdeliaDataset
+from odelia_dataset import OdeliaDataset
 from utils.dataset_utils import get_class_weights
 from model import BreastMRIClassifier
 from utils.early_stopping import EarlyStopping
