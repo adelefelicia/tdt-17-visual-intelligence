@@ -21,7 +21,6 @@ USE_CLASS_WEIGHTS = True
 
 # Learning rate scheduler
 WARMUP_EPOCHS = 5
-WARMUP_END_LR = 0.0001
 MIN_LR = 1e-6
 
 # Early stopping

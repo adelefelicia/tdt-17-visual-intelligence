@@ -9,7 +9,7 @@ class BreastMRIClassifier(nn.Module):
     Outputs logits for lesion classes (not softmaxed).
     """
     
-    def __init__(self, in_channels, num_classes, pretrained = False):
+    def __init__(self, in_channels, num_classes):
         """
         Args:
             in_channels: Number of MRI sequences
@@ -23,8 +23,7 @@ class BreastMRIClassifier(nn.Module):
         self.backbone = DenseNet121(
             spatial_dims=3, # 3D volumes
             in_channels=in_channels,
-            out_channels=num_classes,
-            pretrained=pretrained
+            out_channels=num_classes
         )
             
     def forward(self, x):

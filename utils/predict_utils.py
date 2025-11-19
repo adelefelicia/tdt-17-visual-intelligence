@@ -1,4 +1,5 @@
 import json
+import torch
 
 
 def format_predictions_for_evaluation(predictions, output_path):
@@ -33,3 +34,15 @@ def format_predictions_for_evaluation(predictions, output_path):
         json.dump(formatted_predictions, f, indent=2)
     
     print(f"Saved predictions to {output_path}")
+
+
+def load_checkpoint(checkpoint_path, model, device, optimizer=None, scheduler=None):
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    
+    model.load_state_dict(checkpoint['model_state_dict'])
+    if optimizer:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    if scheduler:
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    
+    return checkpoint

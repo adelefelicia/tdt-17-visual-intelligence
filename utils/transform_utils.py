@@ -5,8 +5,9 @@ from monai.transforms import (CenterSpatialCropd, Compose, NormalizeIntensityd,
 
 def get_train_transforms():
     """
-    Compose data transforms for training based on the Odelia paper's description of their data augmentation pipeline.
-    Ref: https://arxiv.org/pdf/2506.00474 (paper)
+    Compose data transforms for training inspired partially by the Odelia paper's description of their data augmentation pipeline.
+    Ref:
+    https://arxiv.org/pdf/2506.00474 (paper)
     https://github.com/mueller-franzes/odelia_breast_mri/blob/main/odelia/data/datasets/dataset_3d_odelia.py (code)
     """
     transforms = Compose([
@@ -30,7 +31,7 @@ def get_train_transforms():
             keys=["image"],
             rotate_range=(0.0, 0.0, 1.5708),  # 90 degrees in radians
             mode="bilinear",
-            prob=1.0,
+            prob=0.5,
             padding_mode="border",
         ),
         

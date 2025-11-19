@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import torch
 
+from config import NUM_CLASSES
+
 
 def get_class_weights(split, data_root):
     """
@@ -16,9 +18,9 @@ def get_class_weights(split, data_root):
     
     merged = split_df.merge(annotations_df, on='UID', how='left') # Merge to get labels for the split
     labels = merged['Lesion'].values
-    label_counts = np.bincount(labels.astype(int), minlength=3)
+    label_counts = np.bincount(labels.astype(int), minlength=NUM_CLASSES)
     total = len(labels)
-    weights = total / (3 * label_counts + 1e-6) # Calculate inverse frequency weights
+    weights = total / (NUM_CLASSES * label_counts + 1e-6) # Calculate inverse frequency weights
     
     return torch.FloatTensor(weights)
 

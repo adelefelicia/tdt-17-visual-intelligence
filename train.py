@@ -15,7 +15,7 @@ from tqdm import tqdm
 from config import (BATCH_SIZE, DATA_ROOT, EARLY_STOPPING_PATIENCE,
                     IMAGE_SHAPE, LEARNING_RATE, MIN_LR, NUM_CLASSES,
                     NUM_EPOCHS, NUM_WORKERS, RANDOM_SEED, USE_CLASS_WEIGHTS,
-                    WARMUP_EPOCHS, WEIGHT_DECAY, NUM_SEQUENCES)
+                    WARMUP_EPOCHS, WEIGHT_DECAY, NUM_SEQUENCES, CACHE_DATA)
 from model import BreastMRIClassifier
 from odelia_dataset import OdeliaDataset
 from utils.dataset_utils import get_class_weights
@@ -25,20 +25,18 @@ from utils.transform_utils import get_train_transforms, get_val_transforms
 
 torch.set_float32_matmul_precision("medium")
 
-def create_datasets(data_path, dataset_class, dims, train_transform=None, val_transform=None):
-    dataset_train = dataset_class(
+def create_datasets(data_path, train_transform=None, val_transform=None):
+    dataset_train = OdeliaDataset(
         data_path, 
-        split='train', 
-        dims=dims, 
+        split='train',
         transform=train_transform, 
-        cache_dataset=True
+        cache_data=CACHE_DATA
     )
-    dataset_val = dataset_class(
+    dataset_val = OdeliaDataset(
         data_path, 
-        split='val', 
-        dims=dims, 
+        split='val',
         transform=val_transform, 
-        cache_dataset=True
+        cache_data=CACHE_DATA
     )
     return dataset_train, dataset_val
 
@@ -138,7 +136,7 @@ def validate_epoch(model, dataloader, criterion, device, epoch, writer = None):
 
 def train(model, train_loader, val_loader, criterion, optimizer, scheduler, device,
           num_epochs, log_dir, early_stopping=None, writer=None):
-    best_val_loss = float('inf')
+    best_val_score = 0.0
     
     for epoch in range(1, num_epochs + 1):
         # Train
@@ -154,8 +152,8 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
         # Display challenge metrics
         print(f"\nChallenge Metrics (Validation):")
         print(f"AUC:                           {val_metrics['AUC']:.4f}")
-        print(f"Sensitivity @ 90% Specificity: {val_metrics['Specificity']:.4f}")
-        print(f"Specificity @ 90% Sensitivity: {val_metrics['Sensitivity']:.4f}")
+        print(f"Specificity @ 90% Sensitivity: {val_metrics['Specificity']:.4f}")
+        print(f"Sensitivity @ 90% Specificity: {val_metrics['Sensitivity']:.4f}")
         print(f"Composite Score:               {val_metrics['Score']:.4f}")
 
         
@@ -166,8 +164,8 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
             writer.add_scalar("Train/LearningRate", current_lr, epoch)
         
         # Save checkpoint
-        if val_metrics['Score'] < best_val_loss:
-            best_val_loss = val_metrics['Score']
+        if val_metrics['Score'] > best_val_score:
+            best_val_score = val_metrics['Score']
         
             save_checkpoint(
                 {
@@ -177,21 +175,21 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
                     'scheduler_state_dict': scheduler.state_dict(),
                     'train_metrics': train_metrics,
                     'val_metrics': val_metrics,
-                    'best_val_loss': best_val_loss
+                    'best_val_score': best_val_score
                 },
-                filename=f'checkpoint_epoch_{epoch}.pth',
+                filename=f'best_model.pth',
                 checkpoint_dir=log_dir
             )
         
-        # Early stopping
+        # Early stopping (monitor composite score)
         if early_stopping:
-            early_stopping(val_metrics['loss'])
+            early_stopping(val_metrics['Score'])
             if early_stopping.early_stop:
                 print(f"\nEarly stopping triggered after {epoch} epochs")
                 break
     
     print(f"\nTraining completed!")
-    print(f"Best validation loss: {best_val_loss:.4f}")
+    print(f"Best validation (composite) score: {best_val_score:.4f}")
 
 def save_training_config(log_dir):
     config_dict = {
@@ -207,13 +205,11 @@ def save_training_config(log_dir):
         "RANDOM_SEED": RANDOM_SEED,
     }
 
-    with open(log_dir / "config.json", "w") as f:
+    with open(os.path.join(log_dir, "config.json"), "w") as f:
         json.dump(config_dict, f, indent=2)
 
 def main(log_dir):
     set_seed(RANDOM_SEED)
-    
-    os.makedirs(log_dir, exist_ok=True) 
     
     save_training_config(log_dir)
     
@@ -224,7 +220,7 @@ def main(log_dir):
     print("\n[1/5] Creating datasets...")
     train_transforms = get_train_transforms()
     val_transforms = get_val_transforms()
-    dataset_train, dataset_val = create_datasets(DATA_ROOT, OdeliaDataset, IMAGE_SHAPE, train_transform=train_transforms, val_transform=val_transforms)
+    dataset_train, dataset_val = create_datasets(DATA_ROOT, train_transform=train_transforms, val_transform=val_transforms)
 
     print(f"[2/5] Creating dataloaders...")
     train_loader, val_loader = create_dataloaders(
@@ -262,11 +258,11 @@ def main(log_dir):
         max_iter=NUM_EPOCHS
     )
     
-    # Setup early stopping
+    # Setup early stopping (monitor composite score)
     early_stopping = EarlyStopping(patience=EARLY_STOPPING_PATIENCE)
     
     # Setup tensorboard
-    writer = SummaryWriter(log_dir=log_dir / 'tensorboard')
+    writer = SummaryWriter(log_dir=os.path.join(log_dir, 'tensorboard'))
     
     print(f"[5/5] Starting training...\n")
     train(model, train_loader, val_loader, criterion, optimizer, scheduler,
@@ -280,9 +276,12 @@ if __name__ == "__main__":
 
     timestamp = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
     log_dir = os.path.join('logs', 'train', f'odelia_{timestamp}')
+    os.makedirs(log_dir, exist_ok=True) 
+
     main(log_dir)
 
     training_time = time.time() - start_time
-    print(f"\nTraining completed in {training_time:.2f} s ({training_time/60:.2f} min or {training_time/3600:.2f} h)")
+    print(f"\nTraining completed in {training_time:.2f} sec ({training_time/60:.2f} min or {training_time/3600:.2f} h)")
 
-    print(f"Open Tensorboard: tensorboard --logdir {log_dir}/tensorboard")
+    print(f"\nOpen Tensorboard: tensorboard --logdir {log_dir}/tensorboard")
+    print(f"\nBest model: {log_dir}/best_model.pth")

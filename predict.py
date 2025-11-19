@@ -1,3 +1,4 @@
+import argparse
 import datetime as dt
 import os
 import time
@@ -6,12 +7,11 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from config import (BATCH_SIZE, DATA_ROOT, IMAGE_SHAPE, NUM_CLASSES,
+from config import (BATCH_SIZE, DATA_ROOT, NUM_CLASSES,
                     NUM_WORKERS, NUM_SEQUENCES)
 from model import BreastMRIClassifier
 from odelia_dataset import OdeliaDataset
-from utils.predict_utils import format_predictions_for_evaluation
-from utils.train_utils import load_checkpoint
+from utils.predict_utils import format_predictions_for_evaluation, load_checkpoint
 from utils.transform_utils import get_val_transforms
 
 
@@ -42,7 +42,7 @@ def predict(model, dataloader, device):
     
     inference_time = time.time() - start_time
 
-    print(f"\nInference completed in {inference_time:.2f} s ({inference_time/60:.2f} min)")
+    print(f"\nInference completed in {inference_time:.2f} sec ({inference_time/60:.2f} min)")
     
     return predictions
 
@@ -51,10 +51,9 @@ def load_test_data():
 
     dataset = OdeliaDataset(
         DATA_ROOT, 
-        split='test', 
-        dims=IMAGE_SHAPE, 
+        split='test',
         transform=transforms,
-        cache_dataset=True
+        cache_data=False
     )
 
     data_loader = DataLoader(
@@ -80,7 +79,7 @@ def main(checkpoint_path, prediction_output_path):
     model = model.to(device)
     
     # Load checkpoint
-    load_checkpoint(checkpoint_path, model)
+    load_checkpoint(checkpoint_path, model, device)
     
     # Generate predictions
     predictions = predict(model, test_loader, device)
@@ -95,8 +94,14 @@ def main(checkpoint_path, prediction_output_path):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Generate predictions using a trained model')
+    parser.add_argument('--checkpoint', type=str, required=True,
+                        help='Path to the trained model checkpoint (.pth file)')
+    
+    args = parser.parse_args()
+    checkpoint_path = args.checkpoint
+    
     timestamp = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
-    checkpoint_path = "logs/train/odelia_2025_11_dd_hh_mm.pth"  # TODO Path to the trained model checkpoint
     prediction_output_path = f"logs/prediction/{timestamp}"
     
     main(checkpoint_path, prediction_output_path)

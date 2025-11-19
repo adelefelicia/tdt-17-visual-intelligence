@@ -22,23 +22,11 @@ def save_checkpoint(state, filename, checkpoint_dir):
     torch.save(state, filepath)
     print(f"Saved model to {filepath}")
 
-def load_checkpoint(checkpoint_path, model, optimizer=None, scheduler=None):
-    checkpoint = torch.load(checkpoint_path)
-    
-    model.load_state_dict(checkpoint['model_state_dict'])
-    if optimizer:
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    if scheduler:
-        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-    
-    return checkpoint
-
 def compute_metrics(gt_labels, pred_probs):
     """
     Compute metrics (accuracy, AUC, sensitivity, specificity, composite score).
     Code from the handout's evaluate.py.
     """
-    metrics = {}
 
     # Convert to one-hot encoding
     y_true = label_binarize(gt_labels, classes=[0, 1, 2])
@@ -61,7 +49,7 @@ def compute_metrics(gt_labels, pred_probs):
     amalgamated_results = [roc_auc, specificity_at_90_sensitivity, sensitivity_at_90_specificity]
     averaged_results = np.mean(amalgamated_results)
 
-    metrics["results"] = {
+    metrics = {
         "AUC": roc_auc,
         "Specificity": specificity_at_90_sensitivity,
         "Sensitivity": sensitivity_at_90_specificity,
