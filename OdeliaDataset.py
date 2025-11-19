@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 import nibabel as nib
 
 from config import DATA_ROOT, SEQUENCES
-from dataset_utils import load_all_annotations
+from utils.dataset_utils import load_all_annotations
 
 
 class OdeliaDataset(Dataset):
