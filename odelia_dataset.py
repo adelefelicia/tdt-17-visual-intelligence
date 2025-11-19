@@ -1,10 +1,11 @@
 ﻿import os
-import pandas as pd
-import numpy as np
 from pathlib import Path
+
+import nibabel as nib
+import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import Dataset
-import nibabel as nib
 
 from config import DATA_ROOT, SEQUENCES
 from utils.dataset_utils import load_all_annotations

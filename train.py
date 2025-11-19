@@ -1,6 +1,9 @@
 import datetime as dt
 import json
 import os
+import time
+
+import monai
 import numpy as np
 import torch
 import torch.nn as nn
@@ -8,39 +11,33 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-import monai
 
+from config import (BATCH_SIZE, DATA_ROOT, EARLY_STOPPING_PATIENCE,
+                    IMAGE_SHAPE, LEARNING_RATE, MIN_LR, NUM_CLASSES,
+                    NUM_EPOCHS, NUM_WORKERS, RANDOM_SEED, USE_CLASS_WEIGHTS,
+                    WARMUP_EPOCHS, WEIGHT_DECAY, NUM_SEQUENCES)
+from model import BreastMRIClassifier
 from odelia_dataset import OdeliaDataset
 from utils.dataset_utils import get_class_weights
-from model import BreastMRIClassifier
 from utils.early_stopping import EarlyStopping
-from utils.train_utils import (
-    set_seed, save_checkpoint,
-    compute_metrics
-)
-from utils.transform_utils import get_train_transforms
-from config import (
-    DATA_ROOT, BATCH_SIZE, NUM_WORKERS, IMAGE_SHAPE, DROPOUT,
-    NUM_EPOCHS, NUM_CLASSES, LEARNING_RATE, WEIGHT_DECAY,
-    USE_CLASS_WEIGHTS, EARLY_STOPPING_PATIENCE, RANDOM_SEED, MIN_LR, WARMUP_EPOCHS
-)
-
+from utils.train_utils import compute_metrics, save_checkpoint, set_seed
+from utils.transform_utils import get_train_transforms, get_val_transforms
 
 torch.set_float32_matmul_precision("medium")
 
-def create_datasets(data_path, dataset_class, dims, transform=None):
+def create_datasets(data_path, dataset_class, dims, train_transform=None, val_transform=None):
     dataset_train = dataset_class(
         data_path, 
         split='train', 
         dims=dims, 
-        transform=transform, 
+        transform=train_transform, 
         cache_dataset=True
     )
     dataset_val = dataset_class(
         data_path, 
         split='val', 
         dims=dims, 
-        transform=None,  # No transforms on validation
+        transform=val_transform, 
         cache_dataset=True
     )
     return dataset_train, dataset_val
@@ -225,8 +222,9 @@ def main(log_dir):
     print(f"Using device: {device}")
     
     print("\n[1/5] Creating datasets...")
-    transforms = get_train_transforms()
-    dataset_train, dataset_val = create_datasets(DATA_ROOT, OdeliaDataset, IMAGE_SHAPE, transform=transforms)
+    train_transforms = get_train_transforms()
+    val_transforms = get_val_transforms()
+    dataset_train, dataset_val = create_datasets(DATA_ROOT, OdeliaDataset, IMAGE_SHAPE, train_transform=train_transforms, val_transform=val_transforms)
 
     print(f"[2/5] Creating dataloaders...")
     train_loader, val_loader = create_dataloaders(
@@ -234,7 +232,7 @@ def main(log_dir):
     )
     
     print(f"[3/5] Initializing model...")
-    model = BreastMRIClassifier(IMAGE_SHAPE, NUM_CLASSES, DROPOUT)
+    model = BreastMRIClassifier(NUM_SEQUENCES, NUM_CLASSES)
     model = model.to(device)
     
     print(f"[4/5] Setting up loss fn, optimizer, lr scheduler, early stopping, tensorboard...")
@@ -278,8 +276,13 @@ def main(log_dir):
         writer.close()
 
 if __name__ == "__main__":
+    start_time = time.time()
+
     timestamp = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
     log_dir = os.path.join('logs', 'train', f'odelia_{timestamp}')
     main(log_dir)
+
+    training_time = time.time() - start_time
+    print(f"\nTraining completed in {training_time:.2f} s ({training_time/60:.2f} min or {training_time/3600:.2f} h)")
 
     print(f"Open Tensorboard: tensorboard --logdir {log_dir}/tensorboard")

@@ -1,8 +1,6 @@
-from monai.transforms import (
-    Compose, RandGaussianNoised,
-    RandSpatialCropd, RandAffined, NormalizeIntensityd,
-    CenterSpatialCropd
-)
+from monai.transforms import (CenterSpatialCropd, Compose, NormalizeIntensityd,
+                              RandAffined, RandGaussianNoised,
+                              RandSpatialCropd)
 
 
 def get_train_transforms():
@@ -12,7 +10,7 @@ def get_train_transforms():
     https://github.com/mueller-franzes/odelia_breast_mri/blob/main/odelia/data/datasets/dataset_3d_odelia.py (code)
     """
     transforms = Compose([
-        # Crop or pad to 224×224×32 with random center
+        # Crop to 224×224×32 (random center)
         RandSpatialCropd(
             keys=["image"],
             roi_size=(224, 224, 32),

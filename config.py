@@ -13,9 +13,6 @@ SPACING = (0.7, 0.7, 3.0)  # mm (H, W, D)
 
 # TRAINING CONFIGURATION
 
-# Model parameters
-DROPOUT = 0.2
-
 # Training hyperparameters
 NUM_EPOCHS = 100
 LEARNING_RATE = 0.0001

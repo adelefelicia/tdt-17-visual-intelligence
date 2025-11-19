@@ -1,11 +1,10 @@
 import os
 import random
+
 import numpy as np
 import torch
-from pathlib import Path
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.preprocessing import label_binarize
-from typing import Dict
 
 
 def set_seed(seed: int = 42):
@@ -23,12 +22,14 @@ def save_checkpoint(state, filename, checkpoint_dir):
     torch.save(state, filepath)
     print(f"Saved model to {filepath}")
 
-def load_checkpoint(checkpoint_path, model, optimizer, scheduler):
+def load_checkpoint(checkpoint_path, model, optimizer=None, scheduler=None):
     checkpoint = torch.load(checkpoint_path)
     
     model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    if optimizer:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    if scheduler:
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
     
     return checkpoint
 

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class EarlyStopping:
     def __init__(self, patience = 10, delta = 0.00):
         """
