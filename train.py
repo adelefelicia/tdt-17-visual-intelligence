@@ -18,6 +18,7 @@ from utils.train_utils import (
     set_seed, save_checkpoint,
     compute_metrics
 )
+from utils.transform_utils import get_train_transforms
 from config import (
     DATA_ROOT, BATCH_SIZE, NUM_WORKERS, IMAGE_SHAPE, DROPOUT,
     NUM_EPOCHS, NUM_CLASSES, LEARNING_RATE, WEIGHT_DECAY,
@@ -224,7 +225,8 @@ def main(log_dir):
     print(f"Using device: {device}")
     
     print("\n[1/5] Creating datasets...")
-    dataset_train, dataset_val = create_datasets(DATA_ROOT, OdeliaDataset, IMAGE_SHAPE)
+    transforms = get_train_transforms()
+    dataset_train, dataset_val = create_datasets(DATA_ROOT, OdeliaDataset, IMAGE_SHAPE, transform=transforms)
 
     print(f"[2/5] Creating dataloaders...")
     train_loader, val_loader = create_dataloaders(

@@ -14,13 +14,11 @@ class OdeliaDataset(Dataset):
     """
     Loads MRI volumes for breast lesion classification.
     Each sample corresponds to one breast (left or right) with 5 sequences.
-
-    # TODO decide if using split or fold
     """
     def __init__(self, data_root = DATA_ROOT, split = "train", transform = None, cache_data = False):
         self.data_root = Path(data_root)
         self.split = split
-        self.transform = transform  # TODO implement transforms?
+        self.transform = transform
         self.cache_data = cache_data
         self.cache = {}
         
@@ -96,8 +94,7 @@ class OdeliaDataset(Dataset):
         for seq in SEQUENCES:
             nii = nib.load(seq_file_paths[seq])
             img_data = nii.get_fdata()
-            # Add channel dimension
-            img_data = img_data[np.newaxis, ...]
+            img_data = img_data[np.newaxis, ...]    # Add channel dimension
             images.append(torch.from_numpy(img_data).float())
         image = torch.cat(images, dim=0)
         
@@ -110,6 +107,9 @@ class OdeliaDataset(Dataset):
             'breast_side': patient_info['breast_side'],
             'institution': institution
         }
+
+        if self.transform is not None:
+            sample = self.transform(sample)
         
         # Cache if enabled
         if self.cache_data:
