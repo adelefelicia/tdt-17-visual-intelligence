@@ -15,7 +15,7 @@ from tqdm import tqdm
 from config import (BATCH_SIZE, DATA_ROOT, EARLY_STOPPING_PATIENCE,
                     IMAGE_SHAPE, LEARNING_RATE, MIN_LR, NUM_CLASSES,
                     NUM_EPOCHS, NUM_WORKERS, RANDOM_SEED, USE_CLASS_WEIGHTS,
-                    WARMUP_EPOCHS, WEIGHT_DECAY, NUM_SEQUENCES, CACHE_DATA)
+                    WEIGHT_DECAY, NUM_SEQUENCES, CACHE_DATA)
 from model import BreastMRIClassifier
 from odelia_dataset import OdeliaDataset
 from utils.dataset_utils import get_class_weights
@@ -199,7 +199,6 @@ def save_training_config(log_dir):
         "BATCH_SIZE": BATCH_SIZE,
         "LEARNING_RATE": LEARNING_RATE,
         "WEIGHT_DECAY": WEIGHT_DECAY,
-        "WARMUP_EPOCHS": WARMUP_EPOCHS,
         "MIN_LR": MIN_LR,
         "USE_CLASS_WEIGHTS": USE_CLASS_WEIGHTS,
         "RANDOM_SEED": RANDOM_SEED,
@@ -242,20 +241,16 @@ def main(log_dir):
     else:
         criterion = nn.CrossEntropyLoss()
     
-    # Setup optimizer
     optimizer = optim.AdamW(
         model.parameters(),
         lr=LEARNING_RATE,
         weight_decay=WEIGHT_DECAY
     )
 
-    # Setup learning rate scheduler
-    scheduler = monai.optimizers.LRWarmupCosineAnnealing(
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
-        warmup_duration=WARMUP_EPOCHS,
-        warmup_end_lr=LEARNING_RATE,
-        min_lr=MIN_LR,
-        max_iter=NUM_EPOCHS
+        T_max=NUM_EPOCHS,
+        eta_min=MIN_LR,
     )
     
     # Setup early stopping (monitor composite score)

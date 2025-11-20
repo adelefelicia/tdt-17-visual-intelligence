@@ -20,7 +20,6 @@ WEIGHT_DECAY = 1e-5
 USE_CLASS_WEIGHTS = True
 
 # Learning rate scheduler
-WARMUP_EPOCHS = 5
 MIN_LR = 1e-6
 
 # Early stopping
