@@ -1,5 +1,4 @@
 ﻿import os
-from pathlib import Path
 
 import nibabel as nib
 import numpy as np
@@ -17,21 +16,35 @@ class OdeliaDataset(Dataset):
     Each sample corresponds to one breast (left or right) with 5 sequences.
     """
     def __init__(self, data_root = DATA_ROOT, split = "train", transform = None, cache_data = False):
-        self.data_root = Path(data_root)
+        self.data_root = data_root
         self.split = split
         self.transform = transform
         self.cache_data = cache_data
         self.cache = {}
         
-        # Load and filter dataset info
-        self.split_df = pd.read_csv(self.data_root / "split_unilateral.csv")
-        self.split_df = self.split_df[self.split_df['Split'] == split]
-        # Filter to only institutions with available annotations
-        self.split_df = self.split_df[self.split_df['Institution'].isin(['CAM', 'UKA', 'MHA', 'RUMC'])]
-        self.split_df = self.split_df.reset_index(drop=True)
+        self.split_df = self._load_institution_splits()
         self.annotations = load_all_annotations(data_root)
         
         print(f"Loaded {len(self.split_df)} samples for {split} split")
+    
+    def _load_institution_splits(self):
+        """Load and combine institution-specific split files."""
+        institutions = ['CAM', 'UKA', 'MHA', 'RUMC']
+        split_dfs = []
+        
+        for inst in institutions:
+            split_file = os.path.join(self.data_root, "data", inst, "metadata_unilateral", "split.csv")
+            if os.path.exists(split_file):
+                df = pd.read_csv(split_file)
+                # Filter by split
+                df = df[df['Split'] == self.split]
+                df['Institution'] = inst
+                split_dfs.append(df)
+            else:
+                print(f"Warning: Split file not found for {inst}: {split_file}")
+        
+        combined_df = pd.concat(split_dfs, ignore_index=True)
+        return combined_df.reset_index(drop=True)
     
     def _get_file_paths(self, uid, institution):
         """Get file paths for all sequences of a given UID."""

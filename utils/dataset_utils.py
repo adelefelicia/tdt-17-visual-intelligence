@@ -11,10 +11,18 @@ def get_class_weights(split, data_root):
     """
     Find class weights for handling class imbalance for a given split.
     """
-    split_df = pd.read_csv(os.path.join(data_root, "split_unilateral.csv"))
-    split_df = split_df[split_df['Split'] == split]
-    # Filter out institutions without annotations (RSH hidden, UMCU not available)
-    split_df = split_df[split_df['Institution'].isin(['CAM', 'UKA', 'MHA', 'RUMC'])]
+    institutions = ['CAM', 'UKA', 'MHA', 'RUMC']
+    split_dfs = []
+    
+    for inst in institutions:
+        split_file = os.path.join(data_root, "data", inst, "metadata_unilateral", "split.csv")
+        if os.path.exists(split_file):
+            df = pd.read_csv(split_file)
+            df = df[df['Split'] == split]
+            df['Institution'] = inst
+            split_dfs.append(df)
+    
+    split_df = pd.concat(split_dfs, ignore_index=True)
     
     annotations_df = load_all_annotations(data_root)
     
@@ -41,6 +49,8 @@ def load_all_annotations(data_root):
             df = pd.read_csv(annotation_path)
             df['Institution'] = inst
             annotations.append(df)
+        else:
+            print(f"Warning: Annotation file not found for {inst}: {annotation_path}")
     
     annotations_df = pd.concat(annotations, ignore_index=True)
     return annotations_df
