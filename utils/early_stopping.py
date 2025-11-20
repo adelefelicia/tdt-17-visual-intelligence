@@ -13,7 +13,7 @@ class EarlyStopping:
         self.counter = 0
         self.best_score = None
         self.early_stop = False
-        self.best_metric = -np.Inf
+        self.best_metric = -np.inf
     
     def __call__(self, score: float):
         """
