@@ -15,20 +15,30 @@ class OdeliaDataset(Dataset):
     Loads MRI volumes for breast lesion classification.
     Each sample corresponds to one breast (left or right) with 5 sequences.
     """
-    def __init__(self, data_root = DATA_ROOT, split = "train", transform = None, cache_data = False):
+    def __init__(self, data_root = DATA_ROOT, split = "train", transform = None, cache_data = False, split_mode = 'csv'):
         self.data_root = data_root
         self.split = split
         self.transform = transform
         self.cache_data = cache_data
         self.cache = {}
+        self.split_mode = split_mode
         
-        self.split_df = self._load_institution_splits()
+        self.split_df = self._load_splits()
         self.annotations = load_all_annotations(data_root)
         
-        print(f"Loaded {len(self.split_df)} samples for {split} split")
+        print(f"Loaded {len(self.split_df)} samples for {split} split (mode: {split_mode})")
     
-    def _load_institution_splits(self):
-        """Load and combine institution-specific split files."""
+    def _load_splits(self):
+        """Load and combine institution-specific split files based on split mode."""
+        if self.split_mode == 'csv':
+            return self._load_csv_splits()
+        elif self.split_mode == 'institution':
+            return self._load_institution_based_splits()
+        else:
+            raise ValueError(f"Invalid split_mode: {self.split_mode}. Must be 'csv' or 'institution'")
+    
+    def _load_csv_splits(self):
+        """Load splits using the Split column from CSV files."""
         institutions = ['CAM', 'UKA', 'MHA', 'RUMC']
         split_dfs = []
         
@@ -38,6 +48,29 @@ class OdeliaDataset(Dataset):
                 df = pd.read_csv(split_file)
                 # Filter by split
                 df = df[df['Split'] == self.split]
+                df['Institution'] = inst
+                split_dfs.append(df)
+            else:
+                print(f"Warning: Split file not found for {inst}: {split_file}")
+        
+        combined_df = pd.concat(split_dfs, ignore_index=True)
+        return combined_df.reset_index(drop=True)
+    
+    def _load_institution_based_splits(self):
+        """Load splits based on institution: Train on CAM+RUMC, Val on MHA+UKA."""
+        if self.split == 'train':
+            institutions = ['CAM', 'RUMC']
+        elif self.split == 'val':
+            institutions = ['MHA', 'UKA']
+        else:
+            raise ValueError(f"Invalid split: {self.split}. Must be 'train' or 'val' for institution-based splitting")
+        
+        split_dfs = []
+        for inst in institutions:
+            split_file = os.path.join(self.data_root, "data", inst, "metadata_unilateral", "split.csv")
+            if os.path.exists(split_file):
+                df = pd.read_csv(split_file)
+                # Load all samples from this institution (ignore Split column)
                 df['Institution'] = inst
                 split_dfs.append(df)
             else:

@@ -15,7 +15,7 @@ from tqdm import tqdm
 from config import (BATCH_SIZE, DATA_ROOT, EARLY_STOPPING_PATIENCE,
                     IMAGE_SHAPE, LEARNING_RATE, MIN_LR, NUM_CLASSES,
                     NUM_EPOCHS, NUM_WORKERS, RANDOM_SEED, USE_CLASS_WEIGHTS,
-                    WEIGHT_DECAY, NUM_SEQUENCES, CACHE_DATA)
+                    WEIGHT_DECAY, NUM_SEQUENCES, CACHE_DATA, SPLIT_MODE)
 from model import BreastMRIClassifier
 from odelia_dataset import OdeliaDataset
 from utils.dataset_utils import get_class_weights
@@ -30,13 +30,15 @@ def create_datasets(data_path, train_transform=None, val_transform=None):
         data_path, 
         split='train',
         transform=train_transform, 
-        cache_data=CACHE_DATA
+        cache_data=CACHE_DATA,
+        split_mode=SPLIT_MODE
     )
     dataset_val = OdeliaDataset(
         data_path, 
         split='val',
         transform=val_transform, 
-        cache_data=CACHE_DATA
+        cache_data=CACHE_DATA,
+        split_mode=SPLIT_MODE
     )
     return dataset_train, dataset_val
 
@@ -202,6 +204,7 @@ def save_training_config(log_dir):
         "MIN_LR": MIN_LR,
         "USE_CLASS_WEIGHTS": USE_CLASS_WEIGHTS,
         "RANDOM_SEED": RANDOM_SEED,
+        "SPLIT_MODE": SPLIT_MODE,
     }
 
     with open(os.path.join(log_dir, "config.json"), "w") as f:
@@ -234,7 +237,7 @@ def main(log_dir):
     
     # Setup loss function
     if USE_CLASS_WEIGHTS:
-        class_weights = get_class_weights('train', DATA_ROOT)
+        class_weights = get_class_weights('train', DATA_ROOT, SPLIT_MODE)
         class_weights = class_weights.to(device)
         print(f"Using class weights: {class_weights}")
         criterion = nn.CrossEntropyLoss(weight=class_weights)

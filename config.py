@@ -2,6 +2,10 @@
 # DATA CONFIGURATION
 DATA_ROOT = "/cluster/projects/vc/courses/TDT17/mic/ODELIA2025"
 
+# 'csv': Use Split column from CSV files
+# 'institution': Train on CAM+RUMC, Val on MHA+UKA
+SPLIT_MODE = 'institution'
+
 NUM_SEQUENCES = 5
 SEQUENCES = ["Post_1", "Post_2", "Pre", "Sub_1", "T2"]
 

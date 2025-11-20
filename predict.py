@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from config import (BATCH_SIZE, DATA_ROOT, NUM_CLASSES,
-                    NUM_WORKERS, NUM_SEQUENCES)
+                    NUM_WORKERS, NUM_SEQUENCES, SPLIT_MODE)
 from model import BreastMRIClassifier
 from odelia_dataset import OdeliaDataset
 from utils.predict_utils import format_predictions_for_evaluation, load_checkpoint
@@ -53,7 +53,8 @@ def load_test_data():
         DATA_ROOT, 
         split='test',
         transform=transforms,
-        cache_data=False
+        cache_data=False,
+        split_mode=SPLIT_MODE
     )
 
     data_loader = DataLoader(

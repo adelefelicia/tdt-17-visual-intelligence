@@ -7,22 +7,49 @@ import torch
 from config import NUM_CLASSES
 
 
-def get_class_weights(split, data_root):
+def get_class_weights(split, data_root, split_mode='csv'):
     """
     Find class weights for handling class imbalance for a given split.
+    
+    Args:
+        split: 'train' or 'val'
+        data_root: Path to data root
+        split_mode: 'csv' or 'institution'
     """
-    institutions = ['CAM', 'UKA', 'MHA', 'RUMC']
-    split_dfs = []
+    if split_mode == 'csv':
+        institutions = ['CAM', 'UKA', 'MHA', 'RUMC']
+        split_dfs = []
+        
+        for inst in institutions:
+            split_file = os.path.join(data_root, "data", inst, "metadata_unilateral", "split.csv")
+            if os.path.exists(split_file):
+                df = pd.read_csv(split_file)
+                df = df[df['Split'] == split]
+                df['Institution'] = inst
+                split_dfs.append(df)
+        
+        split_df = pd.concat(split_dfs, ignore_index=True)
     
-    for inst in institutions:
-        split_file = os.path.join(data_root, "data", inst, "metadata_unilateral", "split.csv")
-        if os.path.exists(split_file):
-            df = pd.read_csv(split_file)
-            df = df[df['Split'] == split]
-            df['Institution'] = inst
-            split_dfs.append(df)
+    elif split_mode == 'institution':
+        if split == 'train':
+            institutions = ['CAM', 'RUMC']
+        elif split == 'val':
+            institutions = ['MHA', 'UKA']
+        else:
+            raise ValueError(f"Invalid split: {split}. Must be 'train' or 'val' for institution-based splitting")
+        
+        split_dfs = []
+        for inst in institutions:
+            split_file = os.path.join(data_root, "data", inst, "metadata_unilateral", "split.csv")
+            if os.path.exists(split_file):
+                df = pd.read_csv(split_file)
+                df['Institution'] = inst
+                split_dfs.append(df)
+        
+        split_df = pd.concat(split_dfs, ignore_index=True)
     
-    split_df = pd.concat(split_dfs, ignore_index=True)
+    else:
+        raise ValueError(f"Invalid split_mode: {split_mode}. Must be 'csv' or 'institution'")
     
     annotations_df = load_all_annotations(data_root)
     
