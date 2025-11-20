@@ -1,6 +1,6 @@
 
 # DATA CONFIGURATION
-DATA_ROOT = "/cluster/projects/vc/courses/TDT17/mic/ODELIA2025/data"
+DATA_ROOT = "/cluster/projects/vc/courses/TDT17/mic/ODELIA2025"
 
 NUM_SEQUENCES = 5
 SEQUENCES = ["Post_1", "Post_2", "Pre", "Sub_1", "T2"]

@@ -25,7 +25,9 @@ class OdeliaDataset(Dataset):
         
         # Load and filter dataset info
         self.split_df = pd.read_csv(self.data_root / "split_unilateral.csv")
-        self.split_df = self.split_df[self.split_df['split'] == split]
+        self.split_df = self.split_df[self.split_df['Split'] == split]
+        # Filter to only institutions with available annotations
+        self.split_df = self.split_df[self.split_df['Institution'].isin(['CAM', 'UKA', 'MHA', 'RUMC'])]
         self.split_df = self.split_df.reset_index(drop=True)
         self.annotations = load_all_annotations(data_root)
         
@@ -33,7 +35,7 @@ class OdeliaDataset(Dataset):
     
     def _get_file_paths(self, uid, institution):
         """Get file paths for all sequences of a given UID."""
-        data_folder = os.path.join(self.data_root, institution, "data_unilateral", uid)
+        data_folder = os.path.join(self.data_root, "data", institution, "data_unilateral", uid)
         
         file_paths = {}
         for seq in SEQUENCES:
@@ -84,7 +86,7 @@ class OdeliaDataset(Dataset):
         
         row = self.split_df.iloc[idx]
         uid = row['UID']
-        institution = row['institution']
+        institution = row['Institution']
         
         seq_file_paths = self._get_file_paths(uid, institution)
         
