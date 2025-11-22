@@ -87,14 +87,11 @@ def train_epoch(model, dataloader, criterion, optimizer, device, epoch, writer=N
             global_step = epoch * len(dataloader) + batch_idx
             writer.add_scalar('Train/BatchLoss', loss.item(), global_step)
     
-    # Log epoch metrics
     avg_loss = running_loss / len(dataloader)
-    if writer:
-        writer.add_scalar('Train/Loss', avg_loss, epoch)
     
     return {"loss": avg_loss}
 
-def validate_epoch(model, dataloader, criterion, device, epoch, writer = None):
+def validate_epoch(model, dataloader, criterion, device, epoch):
     model.eval()
     
     running_loss = 0.0
@@ -128,11 +125,6 @@ def validate_epoch(model, dataloader, criterion, device, epoch, writer = None):
     avg_loss = running_loss / len(dataloader)
     metrics['loss'] = avg_loss
     
-    # Log epoch metrics
-    if writer:
-        for key, value in metrics.items():
-            writer.add_scalar(f'Val/{key}', value, epoch)
-    
     return metrics
 
 
@@ -148,8 +140,24 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
         
         # Validate
         val_metrics = validate_epoch(
-            model, val_loader, criterion, device, epoch, writer
+            model, val_loader, criterion, device, epoch
         )
+
+        # Log epoch metrics
+        writer.add_scalars("Loss", # Plot losses in same figure
+        {
+            "train": train_metrics['loss'],
+            "val": val_metrics['loss'],
+        }, epoch)
+
+        writer.add_scalars("Metrics", # Plot other related metrics in same figure
+        {
+            "AUC": train_metrics['AUC'],
+            "Sensitivity": val_metrics['Sensitivity'],
+            "Specificity": val_metrics['Specificity'],
+        }, epoch)
+
+        writer.add_scalars("Composite_Score", val_metrics['Score'], epoch)
         
         # Display challenge metrics
         print(f"\nChallenge Metrics (Validation):")
@@ -158,7 +166,6 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
         print(f"Sensitivity @ 90% Specificity: {val_metrics['Sensitivity']:.4f}")
         print(f"Composite Score:               {val_metrics['Score']:.4f}")
 
-        
         # Learning rate scheduling
         scheduler.step()
         current_lr = optimizer.param_groups[0]['lr']
