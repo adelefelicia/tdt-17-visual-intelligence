@@ -29,7 +29,7 @@ def get_train_transforms():
         # Random 90° rotation
         RandAffined(
             keys=["image"],
-            rotate_range=(0.0, 0.0, 1.5708),  # 90 degrees in radians
+            rotate_range=(0.0, 0.0, 0.785),  # 90 degrees in radians
             mode="bilinear",
             prob=0.5,
             padding_mode="border",
