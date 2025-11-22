@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --account=ie-idi
 #SBATCH --job-name=odelia_densenet
-#SBATCH --time=0-08:00:00
+#SBATCH --time=0-00:15:00
 
 #SBATCH --partition=GPUQ
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:v100:1
 #SBATCH --mem=32G
 #SBATCH --nodes=1
 #SBATCH --output=output.out
