@@ -36,7 +36,7 @@ def get_train_transforms():
         ),
         
         # Random Gaussian noise
-        RandGaussianNoised(keys=["image"], prob=1.0, mean=0.0, std=0.25),
+        RandGaussianNoised(keys=["image"], prob=0.4, mean=0.0, std=0.1),
     ])
     return transforms
 

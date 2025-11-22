@@ -152,7 +152,7 @@ class OdeliaDataset(Dataset):
             'label': label,
             'uid': uid,
             'patient_id': patient_info['patient_id'],
-            'age': patient_info['age'],     # TODO should age be included in the model? It can correlate with higher risk...
+            'age': patient_info['age'],
             'breast_side': patient_info['breast_side'],
             'institution': institution
         }
