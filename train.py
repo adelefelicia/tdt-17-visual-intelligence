@@ -1,3 +1,4 @@
+import argparse
 import datetime as dt
 import json
 import os
@@ -152,12 +153,12 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
 
         writer.add_scalars("Metrics", # Plot other related metrics in same figure
         {
-            "AUC": train_metrics['AUC'],
+            "AUC": val_metrics['AUC'],
             "Sensitivity": val_metrics['Sensitivity'],
             "Specificity": val_metrics['Specificity'],
         }, epoch)
 
-        writer.add_scalars("Composite_Score", val_metrics['Score'], epoch)
+        writer.add_scalar("Composite_Score", val_metrics['Score'], epoch)
         
         # Display challenge metrics
         print(f"\nChallenge Metrics (Validation):")
@@ -200,7 +201,7 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler, devi
     print(f"\nTraining completed!")
     print(f"Best validation (composite) score: {best_val_score:.4f}")
 
-def save_training_config(log_dir):
+def save_training_config(log_dir, dropout_prob):
     config_dict = {
         "IMAGE_SHAPE": IMAGE_SHAPE,
         "NUM_CLASSES": NUM_CLASSES,
@@ -212,15 +213,16 @@ def save_training_config(log_dir):
         "USE_CLASS_WEIGHTS": USE_CLASS_WEIGHTS,
         "RANDOM_SEED": RANDOM_SEED,
         "SPLIT_MODE": SPLIT_MODE,
+        "DROPOUT_PROB": dropout_prob,
     }
 
     with open(os.path.join(log_dir, "config.json"), "w") as f:
         json.dump(config_dict, f, indent=2)
 
-def main(log_dir):
+def main(log_dir, args):
     set_seed(RANDOM_SEED)
     
-    save_training_config(log_dir)
+    save_training_config(log_dir, args.dropout_prob)
     
     # Setup device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -237,7 +239,7 @@ def main(log_dir):
     )
     
     print(f"[3/5] Initializing model...")
-    model = BreastMRIClassifier(NUM_SEQUENCES, NUM_CLASSES)
+    model = BreastMRIClassifier(NUM_SEQUENCES, NUM_CLASSES, args.dropout_prob)
     model = model.to(device)
     
     print(f"[4/5] Setting up loss fn, optimizer, lr scheduler, early stopping, tensorboard...")
@@ -277,13 +279,18 @@ def main(log_dir):
         writer.close()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Train Breast MRI Classifier')
+    parser.add_argument('--dropout_prob', type=float, default=0.0,
+                        help='Dropout probability for the model (default: 0.0)')
+    args = parser.parse_args()
+    
     start_time = time.time()
 
     timestamp = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
     log_dir = os.path.join('logs', 'train', f'odelia_{timestamp}')
     os.makedirs(log_dir, exist_ok=True) 
 
-    main(log_dir)
+    main(log_dir, args)
 
     training_time = time.time() - start_time
     print(f"\nTraining completed in {training_time:.2f} sec ({training_time/60:.2f} min or {training_time/3600:.2f} h)")
