@@ -8,8 +8,8 @@
 #SBATCH --mem=32G
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=2
-#SBATCH --output=output.out
-#SBATCH --error=error.err
+#SBATCH --output=idun_logs/output_%j.out
+#SBATCH --error=idun_logs/error_%j.err
 
 #SBATCH --mail-user=adelefe@stud.ntnu.no
 #SBATCH --mail-type=ALL
@@ -32,6 +32,6 @@ module load Python/3.10.4-GCCcore-11.3.0
 source /cluster/home/adelefe/task-4-env/bin/activate
 
 # # 3) Run training script using that env
-python train.py
+python train.py --dropout 0.0
 
 echo " --- Finished running train.py ---"
