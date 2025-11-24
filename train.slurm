@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=ie-idi
+#SBATCH --account=your-account
 #SBATCH --job-name=odelia_densenet
 #SBATCH --time=0-03:00:00
 
@@ -11,11 +11,11 @@
 #SBATCH --output=output.out
 #SBATCH --error=error.err
 
-#SBATCH --mail-user=adelefe@stud.ntnu.no
+#SBATCH --mail-user=your.email@address.com
 #SBATCH --mail-type=ALL
 
 # Go to the directory where you ran sbatch
-cd "/cluster/home/adelefe/tdt-17-visual-intelligence"
+cd "/path/to/repo/location/tdt-17-visual-intelligence"
 
 echo "Running from: $SLURM_SUBMIT_DIR"
 echo "Job name:     $SLURM_JOB_NAME"
@@ -29,9 +29,9 @@ module purge
 module load Python/3.10.4-GCCcore-11.3.0
 
 # 2) Activate existing venv
-source /cluster/home/adelefe/task-4-env/bin/activate
+source /path/to/venv/location/<venv-name>/bin/activate
 
-# # 3) Run training script using that env
-python train.py
+# # 3) Run training script using that env with a specified dropout rate
+python train.py --dropout 0.0
 
 echo " --- Finished running train.py ---"
