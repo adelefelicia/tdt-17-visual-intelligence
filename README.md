@@ -47,6 +47,8 @@ This project is designed to run on NTNU's IDUN cluster using SLURM for job sched
 cd "/path/to/repo/location/tdt-17-visual-intelligence"
 
 source /path/to/venv/location/<venv-name>/bin/activate
+
+python train.py --dropout <your_dropout_probability>
 ```
 
 You can also optionally modify the GPU specifics in the same file.
