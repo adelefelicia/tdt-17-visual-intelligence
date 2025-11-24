@@ -19,7 +19,7 @@ SPACING = (0.7, 0.7, 3.0)  # mm (H, W, D)
 
 # Training hyperparameters
 NUM_EPOCHS = 100
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 1e-5
 USE_CLASS_WEIGHTS = True
 
@@ -30,7 +30,7 @@ MIN_LR = 1e-6
 EARLY_STOPPING_PATIENCE = 20
 
 # Data loading
-BATCH_SIZE = 15
+BATCH_SIZE = 50
 NUM_WORKERS = 2
 CACHE_DATA = False
 

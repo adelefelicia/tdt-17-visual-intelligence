@@ -8,8 +8,8 @@
 #SBATCH --mem=32G
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=2
-#SBATCH --output=output.out
-#SBATCH --error=error.err
+#SBATCH --output=idun_logs/output_%j.out
+#SBATCH --error=idun_logs/error_%j.err
 
 #SBATCH --mail-user=your.email@address.com
 #SBATCH --mail-type=ALL
