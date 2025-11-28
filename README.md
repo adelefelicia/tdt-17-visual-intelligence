@@ -13,23 +13,23 @@ The project uses a 3D DenseNet-121 architecture to process multi-sequence MRI vo
 Both running on a SLURM-based cluster and locally requires a virtual environment with some libraries installed:
 
 1. **Create a vitual environment**:
-```bash
-python -m venv /path/to/venv/location/<venv-name>
-```
+   ```bash
+   python -m venv /path/to/venv/location/<venv-name>
+   ```
 
 2. **Install requirements**:
 If you are running on a CUDA enabled GPU, ensure a compatible PyTorch version by running these commands before installing the requirements. For IDUN the following is compatible:
 
-``` bash
-module load Python/3.10.4-GCCcore-11.3.0
-pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
-```
+   ``` bash
+   module load Python/3.10.4-GCCcore-11.3.0
+   pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+   ```
 
-Install the rest of the requirements (includes PyTorch if you did not install it in the previous step):
+   Install the rest of the requirements (includes PyTorch if you did not install it in the previous step):
 
-``` bash
-pip install -r requirements.txt
-```
+   ``` bash
+   pip install -r requirements.txt
+   ```
 
 ### Training with a SLURM 
 
@@ -39,19 +39,19 @@ This project is designed to run on NTNU's IDUN cluster using SLURM for job sched
 
 2. **Configure the SLURM script**: Edit `train.slurm` to update these lines with your information:
 
-``` bash
-#SBATCH --account=your-account
+   ``` bash
+   #SBATCH --account=your-account
 
-#SBATCH --mail-user=your.email@address.com
+   #SBATCH --mail-user=your.email@address.com
 
-cd "/path/to/repo/location/tdt-17-visual-intelligence"
+   cd "/path/to/repo/location/tdt-17-visual-intelligence"
 
-source /path/to/venv/location/<venv-name>/bin/activate
+   source /path/to/venv/location/<venv-name>/bin/activate
 
-python train.py --dropout <your_dropout_probability>
-```
+   python train.py --dropout <your_dropout_probability>
+   ```
 
-You can also optionally modify the GPU specifics in the same file.
+   You can also optionally modify the GPU specifics in the same file.
 
 3. **Submit the training job**:
    ```bash
@@ -64,8 +64,8 @@ You can also optionally modify the GPU specifics in the same file.
    ```
 
 5. **View output logs**:
-   - Standard output: `output.out`
-   - Error logs: `error.err`
+   - Standard output: `idun_logs/output_<job-id>.out`
+   - Error logs: `idun_logs/error_<job-id>.err`
 
 ### Running Training Locally
 
@@ -83,23 +83,46 @@ Training outputs are saved to `logs/train/odelia_YYYY-MM-DD-HH-MM/` including:
 - Training configuration (`config.json`)
 - TensorBoard logs (`tensorboard/`)
 
-### Running Prediction
-
-To generate predictions on test data using a trained model:
-
-```bash
-python predict.py --checkpoint logs/train/odelia_YYYY-MM-DD-HH-MM/best_model.pth
-```
-
-Predictions will be saved to `logs/prediction/YYYY-MM-DD-HH-MM/predictions.json` in the format required for challenge evaluation.
-
-### Monitoring Training with TensorBoard
+Monitor training with TensorBoard by running the following command:
 
 ```bash
 tensorboard --logdir logs/train/odelia_YYYY-MM-DD-HH-MM/tensorboard
 ```
 
-Then open your browser to `http://localhost:6006` to view training curves, loss, and metrics.
+Then open your browser to `http://localhost:6006`.
+
+### Running prediction
+
+Generate predictions on the RSH test dataset without ground truth using a trained model.
+
+1. **Update paths for data and model**: Modify the following three paths in predict_rsh.py to point to the correct folders and files
+
+   ``` python
+   data_root = "/path/to/dataset/ODELIA2025/data/RSH/data_unilateral"
+   split_csv_path = "/path/to/dataset/ODELIA2025/data/RSH/metadata_unilateral/split.csv"
+   checkpoint_path = "/path/to/your/best_model.pth"
+   ```
+
+2. **Configure the SLURM script OR run directly**: Modify predict.slurm in the same way you did train.slurm previously. If you are not predicting on a SLURM based cluster, you can run the prediction script with:
+
+   ``` bash
+   python predict_rsh.py
+   ```
+
+3. **Submit the training job**:
+   ```bash
+   sbatch train.slurm
+   ```
+
+4. **Monitor the job**:
+   ```bash
+   squeue -u your-username
+   ```
+
+5. **View output logs**:
+   - Standard output: `idun_logs/output_<job-id>.out`
+   - Error logs: `idun_logs/error_<job-id>.err`
+
 
 ## Dataset
 
