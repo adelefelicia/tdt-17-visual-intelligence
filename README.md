@@ -91,7 +91,7 @@ tensorboard --logdir logs/train/odelia_YYYY-MM-DD-HH-MM/tensorboard
 
 Then open your browser to `http://localhost:6006`.
 
-### Running prediction
+### Predicting with a SLURM
 
 Generate predictions on the RSH test dataset without ground truth using a trained model.
 
@@ -103,26 +103,25 @@ Generate predictions on the RSH test dataset without ground truth using a traine
    checkpoint_path = "/path/to/your/best_model.pth"
    ```
 
-2. **Configure the SLURM script OR run directly**: Modify predict.slurm in the same way you did train.slurm previously. If you are not predicting on a SLURM based cluster, you can run the prediction script with:
-
-   ``` bash
-   python predict_rsh.py
-   ```
+2. **Configure the SLURM script OR run directly**: Modify predict.slurm in the same way you did train.slurm previously.
 
 3. **Submit the training job**:
    ```bash
-   sbatch train.slurm
-   ```
-
-4. **Monitor the job**:
-   ```bash
-   squeue -u your-username
+   sbatch predict.slurm
    ```
 
 5. **View output logs**:
    - Standard output: `idun_logs/output_<job-id>.out`
    - Error logs: `idun_logs/error_<job-id>.err`
 
+### Running prediction Locally
+
+Requires Python version 3.10.4 or higher.
+
+```bash
+source /path/to/venv/location/<venv-name>/bin/activate
+python predict_rsh.py
+```
 
 ## Dataset
 
