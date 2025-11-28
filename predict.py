@@ -1,3 +1,5 @@
+# Old predict for when I thought I would have ground truth for RSH dataset
+
 import argparse
 import datetime as dt
 import os
@@ -76,7 +78,7 @@ def main(checkpoint_path, prediction_output_path):
     print(f"Test batches: {len(test_loader)}")
     
     # Create model
-    model = BreastMRIClassifier(NUM_SEQUENCES, NUM_CLASSES)
+    model = BreastMRIClassifier(NUM_SEQUENCES, NUM_CLASSES, dropout_prob=0.0)
     model = model.to(device)
     
     # Load checkpoint
