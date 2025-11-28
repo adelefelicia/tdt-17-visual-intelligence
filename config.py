@@ -1,6 +1,6 @@
 
 # DATA CONFIGURATION
-DATA_ROOT = "/cluster/projects/vc/courses/TDT17/mic/ODELIA2025"
+DATA_ROOT = "/path/to/dataset/ODELIA2025"
 
 # 'csv': Use Split column from CSV files
 # 'institution': Train on CAM+RUMC, Val on MHA+UKA

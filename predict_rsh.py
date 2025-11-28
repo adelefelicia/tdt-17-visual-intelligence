@@ -132,10 +132,10 @@ def load_rsh_data(data_root, split_csv_path, batch_size):
 
 
 def main():
-    data_root = "/cluster/projects/vc/courses/TDT17/mic/ODELIA2025/data/RSH/data_unilateral"
-    split_csv_path = "/cluster/projects/vc/courses/TDT17/mic/ODELIA2025/data/RSH/metadata_unilateral/split.csv"
+    data_root = "/path/to/dataset/ODELIA2025/data/RSH/data_unilateral"
+    split_csv_path = "/path/to/dataset/ODELIA2025/data/RSH/metadata_unilateral/split.csv"
     
-    checkpoint_path = "/cluster/home/adelefe/tdt-17-visual-intelligence/logs/train/odelia_2025-11-22-22-14/best_model.pth"  # TODO remove before comitting
+    checkpoint_path = "/path/to/your/best_model.pth"
     output_csv_path = "predictions.csv"
     batch_size = 67  # All samples in one batch
     
